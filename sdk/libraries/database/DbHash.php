@@ -9,7 +9,7 @@ class DbHash{
         $table_alias = '';
         if ($hash) {
             switch ($table) {
-                case "yx_user_basic"://用户表
+                case "t_user_basic"://用户表
                     $table_suffix = substr(md5($hash), 0, 1);
                     $table_alias  = 't_user_basic_' . $table_suffix;
                     break;

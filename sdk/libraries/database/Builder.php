@@ -4,12 +4,12 @@ namespace  SDK\Libraries\Database;
 
 use Closure;
 use BadMethodCallException;
-use SDK\Library\Database\Query\Grammar;
-use SDK\Library\Database\Query\JoinClause;
-use SDK\Library\Database\Support\Arr;
-use SDK\Library\Database\Support\Expression;
-use SDK\Library\Database\Support\Macroable;
-use SDK\Library\Database\Support\Str;
+use SDK\Libraries\Database\Query\Grammar;
+use SDK\Libraries\Database\Query\JoinClause;
+use SDK\Libraries\Database\Support\Arr;
+use SDK\Libraries\Database\Support\Expression;
+use SDK\Libraries\Database\Support\Macroable;
+use SDK\Libraries\Database\Support\Str;
 use InvalidArgumentException;
 
 class Builder

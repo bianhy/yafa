@@ -20,8 +20,8 @@ namespace SDK\Libraries;
  *
  */
 
-use SDK\LibrarY\Database\Builder;
-use SDK\LibrarY\Database\DataConfigLoader;
+use SDK\Libraries\Database\Builder;
+use SDK\Libraries\Database\DataConfigLoader;
 use Psr\Log\AbstractLogger;
 
 defined('DATABASE_DEBUG') || define('DATABASE_DEBUG', false);
@@ -760,7 +760,7 @@ class DB
      */
     protected static function table($table, $hash = null)
     {
-        return DB::getInstance("SDK\\Library\\Database\\DataConfigLoader::db", $table, $hash)->load($table, $hash);
+        return DB::getInstance("SDK\\Libraries\\Database\\DataConfigLoader::db", $table, $hash)->load($table, $hash);
     }
 
     /**

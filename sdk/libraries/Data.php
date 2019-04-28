@@ -16,24 +16,24 @@ use SDK\libraries\database\DataConfigLoader;
 class Data
 {
     /**
-     * @param $key
+     * @param $channel
      * @param null $hash
      * @return \Redis
      */
-    public static function redis($key, $hash=null)
+    public static function redis($channel, $hash=null)
     {
-        $config = DataConfigLoader::redis($key, $hash);
+        $config = DataConfigLoader::redis($channel, $hash);
         return Redis::getInstance($config['host'], $config['port'], $config['timeout'], $config['auth']);
     }
 
     /**
-     * @param $key
+     * @param $channel
      * @param null $hash
      * @return \Memcache
      */
-    public static function memcache($key, $hash=null)
+    public static function memcache($channel, $hash=null)
     {
-        $config = DataConfigLoader::memcache($key, $hash);
+        $config = DataConfigLoader::memcache($channel, $hash);
         return Memcache::getInstance($config['host'], $config['port']);
     }
 }
