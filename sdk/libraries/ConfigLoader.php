@@ -7,11 +7,11 @@
  *
  */
 
-namespace SDK\Libraries\Database;
+namespace SDK\Libraries;
 
 use Yaf\Registry;
 
-class DataConfigLoader
+class ConfigLoader
 {
 
     public static function db($table, $hash=null) {

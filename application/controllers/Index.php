@@ -19,6 +19,11 @@ class IndexController extends Controller_Abstract {
 		//1. fetch query
 		$get = $this->getRequest()->getQuery("get", "default value");
 
+		$r = Data::redis('default')->get('t1');
+		var_dump($r);exit;
+
+
+$s = DB::builder('users')->get();var_dump($s);exit;
 		//2. fetch model
 		$model = new SampleModel();
 

@@ -21,7 +21,6 @@ namespace SDK\Libraries;
  */
 
 use SDK\Libraries\Database\Builder;
-use SDK\Libraries\Database\DataConfigLoader;
 use Psr\Log\AbstractLogger;
 
 defined('DATABASE_DEBUG') || define('DATABASE_DEBUG', false);
@@ -760,7 +759,7 @@ class DB
      */
     protected static function table($table, $hash = null)
     {
-        return DB::getInstance("SDK\\Libraries\\Database\\DataConfigLoader::db", $table, $hash)->load($table, $hash);
+        return DB::getInstance("SDK\\Libraries\\ConfigLoader::db", $table, $hash)->load($table, $hash);
     }
 
     /**
@@ -785,7 +784,7 @@ class DB
         if (!$table) {
             throw new DBException('builder table 不能为空');
         }
-        $config = DataConfigLoader::parseTable($table);
+        $config = ConfigLoader::parseTable($table);
         return (new Builder(self::table($table, $hash)))->from($config['table']);
     }
 }
