@@ -6,8 +6,7 @@
  * @see http://www.php.net/manual/en/class.yaf-controller-abstract.php
  */
 use Yaf\Controller_Abstract;
-use SDK\Libraries\DB;
-use SDK\libraries\Data;
+
 class IndexController extends Controller_Abstract {
 
 	/** 
@@ -19,11 +18,6 @@ class IndexController extends Controller_Abstract {
 		//1. fetch query
 		$get = $this->getRequest()->getQuery("get", "default value");
 
-		$r = Data::redis('default')->get('t1');
-		var_dump($r);exit;
-
-
-$s = DB::builder('users')->get();var_dump($s);exit;
 		//2. fetch model
 		$model = new SampleModel();
 

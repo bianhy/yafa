@@ -7,7 +7,7 @@
  *
  */
 
-namespace SDK\libraries;
+namespace SDK\Libraries;
 
 use SDK\Libraries\Cache\Memcache;
 use SDK\Libraries\Cache\Redis;

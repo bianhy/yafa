@@ -7,7 +7,7 @@
  *
  */
 
-namespace SDK\libraries;
+namespace SDK\Libraries;
 
 use Yaf\Registry;
 use Yaf\Session;
