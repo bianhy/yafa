@@ -15,6 +15,10 @@ class SamplePlugin extends Plugin_Abstract {
 	}
 
 	public function routerShutdown(Request_Abstract $request, Response_Abstract $response) {
+	    //让控制器支持驼峰法命名
+        $uri = $request->getRequestUri();
+        list(,$controller,) = explode('/',$uri);
+        $request->controller = $controller ?: 'index';
 	}
 
 	public function dispatchLoopStartup(Request_Abstract $request, Response_Abstract $response) {
