@@ -155,7 +155,7 @@ class DB
     protected $external_logger = null; // 定义外部处理错误的对象,此class必须包含一个log()函数
 
     /**
-     * /*
+     *
      * 获取单 database 类的实例
      *
      * <code>
@@ -163,8 +163,8 @@ class DB
      * </code>
      *
      * @name string $tag_name 为些实例打标签, 以后所有些标签都将返回同一个实例
-     *
      * @return DB
+     * @throws \ReflectionException
      */
     public static function getInstance()
     {
@@ -180,9 +180,10 @@ class DB
 
     /**
      * 构造函数
-     *
+     * new \ReflectionClass($model)->newInstanceArgs($args);
+     * DB constructor.
      * @param string $config_callback_function 获取 db 配置的回调函数, 传递函数名
-     *
+     * @throws DBException
      */
     public function __construct($config_callback_function = "get_db_config")
     {
@@ -190,7 +191,6 @@ class DB
             $this->setConfigFunction($config_callback_function);
         }
 
-        //$this->setExternalLogger(Logger::get('mysql'));
         return $this;
     }
 
@@ -203,7 +203,6 @@ class DB
      * 设置外部日志处理函数
      *
      * @param object $obj 外部处理错误信息的对像, 此对象必须包含一个 log() 函数
-     * @return true or false;
      *
      */
     public function setExternalLogger($obj)
@@ -224,6 +223,7 @@ class DB
     }
 
     /**
+     *
      * 函数功能: 设置并载入 db 配置文件
      *
      * <code>
@@ -235,8 +235,8 @@ class DB
      * </code>
      *
      * @param string $callback_function 获取db信息的回调函数名
-     * @return true / false
-     *
+     * @return bool
+     * @throws DBException
      */
     public function setConfigFunction($callback_function)
     {
@@ -262,12 +262,11 @@ class DB
      *
      * @param string $const_table 已经在配置文件中配置好的case块区名
      * @param string $hash 是否需要自动进行 md5($hash) 操作, 台脚本需指定 hash 时将此值置false
-     * @return DB
+     * @return DB |bool
      *
      */
     public function load($const_table, $hash = null)
     {
-        $this->logDebug("[T] Load($const_table, ".($hash ? $hash : 'null').")");
         if ($this->auto_close_mysql_link) {
             $this->close();
         }
@@ -311,9 +310,8 @@ class DB
      *        $conn = $db->connect();
      * </code>
      *
-     * @param void
-     * @return false or mysql connection
-     *
+     * @return bool|\PDO|resource
+     * @throws DBException
      */
     protected function connect()
     {
@@ -327,18 +325,16 @@ class DB
         }
 
         try {
-            $time_start       = microtime(1);
             $this->connection = new \PDO(
                 "mysql:host=" . $this->_config['host'] . ";dbname=" . $this->_config['database'] . ";port=" . $this->_config['port'],
                 $this->_config['user'],
                 $this->_config['pass'],
                 array(
                     \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'",
-                    \PDO::ATTR_PERSISTENT         => false
+                    \PDO::ATTR_PERSISTENT         => false,
+                    \PDO::ATTR_TIMEOUT            => DATABASE_DEFAULT_TIMEOUT
                 )
             );
-            $this->logDebug("[T] connect info:" . "mysql:host=" . $this->_config['host'] . ";dbname=" . $this->_config['database'] . ";port=" . $this->_config['port']);
-            $this->logDebug("[T] connect time:" . (microtime(1) - $time_start));
         } catch (\PDOException $e) {
             $this->setLastError($e->getMessage());
         }
@@ -370,17 +366,18 @@ class DB
     }
 
     /**
+     *
      * 带翻页的查询, 通常在展示数据列表的时候调用此函数, 没有数据返回 null, 出错返回 false
      *
      * 第三个参数 $total_rows 是从外部传递此查询总共有多少条记录
      * 这个参数可以在别的地方被缓存, 翻页的时候用缓存值能有效的减轻db上 SELECT COUNT(*) 的压力
      *
-     * @param string $sql 查询语句
-     * @param integer $current_page 当前显示第几页
-     * @param integer $total_rows 此查询总共有多少条记录
-     * @param integer $page_size 每页显示多少条
-     * @return null, false or array()
-     *
+     * @param $sql
+     * @param int $current_page 前显示第几页
+     * @param int $total_rows  此查询总共有多少条记录
+     * @param int $page_size 每页显示多少条
+     * @return array |bool
+     * @throws DBException
      */
     public function queryWithPage($sql, $current_page = 1, $total_rows = 0, $page_size = 25)
     {
@@ -527,13 +524,11 @@ class DB
         }
 
         if (!empty($this->_config['table_alias'])) {
-            $this->logDebug("[S] $sql");
             $sql = preg_replace('/([from|update|into]\s+)`?' . $this->_config['table'] . '`? ?/is', '\1`' . $this->_config['table_alias'] . '` ', $sql, 2);
         }
-        $this->logDebug(sprintf("[Q] %s", $sql));
-        $this->logDebug(sprintf("[P] %s", json_encode($bindings)));
+
         $result   = false;
-        $tmp_time = microtime(1);
+
         $sth      = $this->connection->prepare($sql);
         if (!($sth instanceof \PDOStatement)) {
             $this->setLastError('prepare sql error:'.$sql);
@@ -545,12 +540,6 @@ class DB
             $this->setLastError($sql.':'. json_encode($bindings) .':'.implode(',',$sth->errorInfo()), $sth->errorCode());
             return $result;
         }
-        $tmp_time = microtime(1) - $tmp_time;
-        $this->logDebug(sprintf("[T] consumed %.5f sec", $tmp_time));
-
-        if ($tmp_time > DATABASE_LOG_SQL_TIME) {
-            $this->external_logger->alert(sprintf("[Q] [%s] %s; [R] %.5f sec consumed", date("m/d H:i:s"), $sql, $tmp_time));
-        }
 
         if ($fetch !== false) {
 
@@ -559,10 +548,10 @@ class DB
                     $result = $sth->fetchColumn();
                     break;
                 case 'row':
-                    $result = $sth->fetch(\PDO :: FETCH_ASSOC);
+                    $result = $sth->fetch(\PDO::FETCH_ASSOC);
                     break;
                 case 'rows':
-                    $result = $sth->fetchAll(\PDO :: FETCH_ASSOC);
+                    $result = $sth->fetchAll(\PDO::FETCH_ASSOC);
                     break;
                 case 'lastInsertId':
                     $result = $this->connection->lastInsertId();
@@ -749,17 +738,18 @@ class DB
     {
         $this->last_error = $message;
         $this->logError($message);
-        throw new DBException($message, $code);
+        throw new DBException($message, (int)$code);
     }
 
     /**
      * @param $table
      * @param null $hash
-     * @return DB
+     * @return bool|DB
+     * @throws \ReflectionException
      */
     protected static function table($table, $hash = null)
     {
-        return DB::getInstance("SDK\\Libraries\\ConfigLoader::db", $table, $hash)->load($table, $hash);
+        return DB::getInstance("SDK\\Libraries\\ConfigLoader::db")->load($table, $hash);
     }
 
     /**
@@ -778,6 +768,7 @@ class DB
      * @param null $hash
      * @return Builder
      * @throws DBException
+     * @throws \ReflectionException
      */
     public static function builder($table, $hash = null)
     {
