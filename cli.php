@@ -12,4 +12,6 @@ $autoLoader->addPsr4("SDK\\", APP_PATH.'/sdk');
 
 require_once APP_PATH.'/init.php';
 
-(new Yaf\Application(APP_PATH . "/conf/application.ini"))->bootstrap()->getDispatcher()->dispatch(new Yaf\Request\Simple());
+$application = new Yaf\Application( APP_PATH . "/conf/application.ini");
+
+$application->bootstrap()->run();
