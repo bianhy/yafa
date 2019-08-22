@@ -14,7 +14,15 @@ class SamplePlugin extends Plugin_Abstract {
 	public function routerStartup(Request_Abstract $request, Response_Abstract $response) {
 	}
 
-	public function routerShutdown(Request_Abstract $request, Response_Abstract $response) {
+	public function routerShutdown(Request_Abstract $request, Response_Abstract $response)
+    {
+        if (IS_CLI){
+            $opt        = getopt('c:a::');
+            $controller = isset($opt['c']) ? $opt['c'] : 'index';
+            $action     = isset($opt['a']) ? $opt['a'] : 'index';
+            $request->controller = $controller;
+            $request->action     = $action;
+        }
 	}
 
 	public function dispatchLoopStartup(Request_Abstract $request, Response_Abstract $response) {
