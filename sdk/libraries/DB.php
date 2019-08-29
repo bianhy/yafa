@@ -190,7 +190,7 @@ class DB
         if ($config_callback_function) {
             $this->setConfigFunction($config_callback_function);
         }
-
+        $this->setExternalLogger(Logger::get('mysql'));
         return $this;
     }
 
@@ -267,6 +267,7 @@ class DB
      */
     public function load($const_table, $hash = null)
     {
+        $this->logDebug("[T] Load($const_table, ".($hash ? $hash : 'null').")");
         if ($this->auto_close_mysql_link) {
             $this->close();
         }
@@ -325,6 +326,7 @@ class DB
         }
 
         try {
+            $time_start       = microtime(1);
             $this->connection = new \PDO(
                 "mysql:host=" . $this->_config['host'] . ";dbname=" . $this->_config['database'] . ";port=" . $this->_config['port'],
                 $this->_config['user'],
@@ -335,6 +337,8 @@ class DB
                     \PDO::ATTR_TIMEOUT            => DATABASE_DEFAULT_TIMEOUT
                 )
             );
+            $this->logDebug("[T] connect info:" . "mysql:host=" . $this->_config['host'] . ";dbname=" . $this->_config['database'] . ";port=" . $this->_config['port']);
+            $this->logDebug("[T] connect time:" . (microtime(1) - $time_start));
         } catch (\PDOException $e) {
             $this->setLastError($e->getMessage());
         }
@@ -524,11 +528,13 @@ class DB
         }
 
         if (!empty($this->_config['table_alias'])) {
+            $this->logDebug("[S] $sql");
             $sql = preg_replace('/([from|update|into]\s+)`?' . $this->_config['table'] . '`? ?/is', '\1`' . $this->_config['table_alias'] . '` ', $sql, 2);
         }
-
+        $this->logDebug(sprintf("[Q] %s", $sql));
+        $this->logDebug(sprintf("[P] %s", json_encode($bindings)));
         $result   = false;
-
+        $tmp_time = microtime(1);
         $sth      = $this->connection->prepare($sql);
         if (!($sth instanceof \PDOStatement)) {
             $this->setLastError('prepare sql error:'.$sql);
@@ -539,6 +545,11 @@ class DB
         if ($sth->errorCode() != '00000') {
             $this->setLastError($sql.':'. json_encode($bindings) .':'.implode(',',$sth->errorInfo()), $sth->errorCode());
             return $result;
+        }
+        $tmp_time = microtime(1) - $tmp_time;
+        $this->logDebug(sprintf("[T] consumed %.5f sec", $tmp_time));
+        if ($tmp_time > DATABASE_LOG_SQL_TIME) {
+            $this->external_logger->alert(sprintf("[Q] [%s] %s; [R] %.5f sec consumed", date("m/d H:i:s"), $sql, $tmp_time));
         }
 
         if ($fetch !== false) {

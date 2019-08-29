@@ -26,3 +26,7 @@ Registry::set('memcache_ini', $memcacheIni);
 //session 配置注册
 $sessionIni = new Ini(APP_PATH . '/conf/session.ini', $environ);
 Registry::set('session_ini', $sessionIni);
+
+//log 配置注册
+$logIni = new Ini(APP_PATH . '/conf/log.ini', $environ);
+Registry::set('log_ini', $logIni);
