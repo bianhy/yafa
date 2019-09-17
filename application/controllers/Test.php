@@ -19,4 +19,21 @@ class TestController extends AbstractController {
         $get = Data::redis('default')->get('t1');
         var_dump($set,$get);exit;
 	}
+    /**
+     * 测试文档
+     * @desc  测试文档
+     * @apiparam {"name":"phone", "type":"string", "desc":"phone", "require":true}
+     * @apiparam {"name":"password", "type":"string", "desc":"password", "require":true}
+     * @apireturn {"name":"phone", "type":"int", "desc":"phone", "require":true}
+     * @apireturn {"name":"password", "type":"string", "desc":"password", "require":true}
+     * @example   http://local.yafa.com/test/doc
+     * @example_ret {"code":"200","data":{"ret":"1"},"time":"1524745122"}
+     */
+    public function docAction()
+    {
+        $phone    = $this->getRequest()->getQuery("phone");
+        $password = $this->getRequest()->getQuery("password");
+        echo json_encode(['phone'=>$phone,'password'=>$password]);
+        return false;
+	}
 }
